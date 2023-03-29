@@ -1,5 +1,5 @@
 model:
-    arch: fanet
+    arch: upernet
     backbone: swin_v2_b
 data:
     dataset: lpcvc 
