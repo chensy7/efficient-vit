@@ -12,12 +12,13 @@ from tqdm import tqdm
 
 from fanet import get_model
 from loss import get_loss_function
-from loader import get_loader, convert_state_dict
+from loader import get_loader
 from utils import get_logger
 from metrics import runningScore, averageMeter
 from augmentations import get_composed_augmentations
 from optimizers import get_optimizer
 
+from torch.utils.tensorboard import SummaryWriter
 
 def init_seed(manual_seed, en_cudnn=False):
     torch.cuda.benchmark = en_cudnn
@@ -141,8 +142,11 @@ def train(cfg):
     time_meter = averageMeter()
     i = start_iter
 
+    writer = SummaryWriter("tensorboard")
+
     while i <= cfg["training"]["train_iters"]:
-        for (images, labels) in trainloader:
+        print("{0} out of {1} iterations".format(i, cfg["training"]["train_iters"]))
+        for (images, labels) in tqdm(trainloader):
             i += 1
             model.train()
             optimizer.zero_grad()
@@ -204,6 +208,10 @@ def train(cfg):
                     ),
                 )
                 torch.save(state, save_path)
+                print("Mean IoU {0}, Best {1}".format(score["Mean IoU : \t"], best_iou))
+
+                writer.add_scalar("mean_iou", score["Mean IoU : \t"], i)
+                writer.add_scalar("loss", loss, i)
 
                 if score["Mean IoU : \t"] >= best_iou:
                     best_iou = score["Mean IoU : \t"]
@@ -221,6 +229,7 @@ def train(cfg):
                     )
                     torch.save(state, save_path)
 
+    writer.close()
 
 if __name__ == "__main__":
     import warnings
@@ -231,7 +240,7 @@ if __name__ == "__main__":
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    args = Namespace(config="FA_Res18.yml", local_rank=0)
+    args = Namespace(config="FA_swin_v2_b.yml", local_rank=0)
 
     with open(args.config) as fp:
         cfg = yaml.safe_load(fp)

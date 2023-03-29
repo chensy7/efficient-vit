@@ -231,6 +231,26 @@ class BatchNorm2d(nn.BatchNorm2d):
     def forward(self, x):
         return self.activation(super(BatchNorm2d, self).forward(x))
 
+def swin_v2_b_forward(model, x):
+    model = model.features
+    for i in range(len(model)):
+        x = model[i](x)
+        if i == 1: feat4 = x.transpose(1, 2).transpose(1, 3)
+        elif i == 3: feat8 = x.transpose(1, 2).transpose(1, 3)
+        elif i == 5: feat16 = x.transpose(1, 2).transpose(1, 3)
+        elif i == 7: feat32 = x.transpose(1, 2).transpose(1, 3)
+    return feat4, feat8, feat16, feat32
+
+def swin_v2_b_get_params(model):
+    wd_params, nowd_params = [], []
+    for name, module in model.named_modules():
+        if isinstance(module, (nn.Linear, nn.Conv2d)):
+            wd_params.append(module.weight)
+            # if not module.bias is None:
+            #     nowd_params.append(module.bias)
+        # elif isinstance(module, (model.norm_layer)):
+        #     nowd_params += list(module.parameters())
+    return wd_params, nowd_params
 
 class FANet(nn.Module):
     def __init__(
@@ -243,10 +263,16 @@ class FANet(nn.Module):
         self._up_kwargs = up_kwargs
         self.nclass = nclass
         # copying modules from pretrained models
-        self.backbone = backbone
+        self.backbone_type = backbone
         if backbone == "resnet18":
             self.expansion = 1
-            self.resnet = Resnet18(norm_layer=norm_layer)
+            self.backbone = Resnet18(norm_layer=norm_layer)
+        elif backbone == "resnet50":
+            self.expansion = 4
+            self.backbone = Resnet50(norm_layer=norm_layer)
+        elif backbone == "swin_v2_b":
+            self.expansion = 2
+            self.backbone = models.swin_v2_b(weights='DEFAULT')
         else:
             raise RuntimeError("unknown backbone: {}".format(backbone))
         # bilinear upsample options
@@ -272,7 +298,10 @@ class FANet(nn.Module):
 
         _, _, h, w = x.size()
 
-        feat4, feat8, feat16, feat32 = self.resnet(x)
+        if self.backbone_type == "swin_v2_b":
+            feat4, feat8, feat16, feat32 = swin_v2_b_forward(self.backbone, x)
+        else:
+            feat4, feat8, feat16, feat32 = self.backbone(x)
 
         upfeat_32, smfeat_32 = self.ffm_32(feat32, None, True, True)
         upfeat_16, smfeat_16 = self.ffm_16(feat16, upfeat_32, True, True)
@@ -323,8 +352,10 @@ class FANet(nn.Module):
                 lr_mul_wd_params += child_wd_params
                 lr_mul_nowd_params += child_nowd_params
             else:
-
-                child_wd_params, child_nowd_params = child.get_params()
+                if isinstance(child, models.SwinTransformer):
+                    child_wd_params, child_nowd_params = swin_v2_b_get_params(child)
+                else:
+                    child_wd_params, child_nowd_params = child.get_params()
                 wd_params += child_wd_params
                 nowd_params += child_nowd_params
         return wd_params, nowd_params, lr_mul_wd_params, lr_mul_nowd_params

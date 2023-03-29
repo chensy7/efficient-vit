@@ -231,8 +231,8 @@ class RandomRotate(object):
                 translate=(0, 0),
                 scale=1.0,
                 angle=rotate_degree,
-                resample=Image.BILINEAR,
-                fillcolor=(0, 0, 0),
+                interpolation=Image.BILINEAR,
+                fill=(0, 0, 0),
                 shear=0.0,
             ),
             tf.affine(
@@ -240,8 +240,8 @@ class RandomRotate(object):
                 translate=(0, 0),
                 scale=1.0,
                 angle=rotate_degree,
-                resample=Image.NEAREST,
-                fillcolor=250,
+                interpolation=Image.NEAREST,
+                fill=250,
                 shear=0.0,
             ),
         )
