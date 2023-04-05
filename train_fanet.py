@@ -240,7 +240,7 @@ if __name__ == "__main__":
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    args = Namespace(config="FA_swin_v2_b.yml", local_rank=0)
+    args = Namespace(config="FA_mobilevit.yml", local_rank=0)
 
     with open(args.config) as fp:
         cfg = yaml.safe_load(fp)

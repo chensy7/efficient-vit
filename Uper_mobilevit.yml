@@ -1,6 +1,6 @@
 model:
     arch: upernet
-    backbone: swin_v2_b
+    backbone: mobilevit
 data:
     dataset: lpcvc 
     train_split: train  
@@ -14,6 +14,11 @@ training:
     batch_size: 16
     val_interval: 500
     print_interval: 25
+    teacher: 
+        name:
+            arch: upernet
+            backbone: swin_v2_t
+        model: runs/Uper_swin_v2_t/90385/upernet_lpcvc_best_model.pkl
     loss:
         name: OhemCELoss2D
         thresh: 0.7

@@ -105,6 +105,14 @@ def train(cfg):
 
     # Setup Model
     model = get_model(cfg["model"], t_loader.n_classes, loss_fn=loss_fn)
+    kd_enable = cfg["training"]["teacher"] is not None
+    if cfg["training"]["teacher"] is not None:
+        print("Knowledge distillation enabled")
+        teacher_model = get_model(cfg["training"]["teacher"]["name"], t_loader.n_classes, loss_fn=loss_fn)
+        ckpt = torch.load(cfg["training"]["teacher"]["model"])
+        teacher_model.load_state_dict(ckpt["model_state"])
+        teacher_model.eval()
+        teacher_model.cuda()
 
     # Setup optimizer
     optimizer = get_optimizer(cfg["training"], model)
@@ -133,7 +141,7 @@ def train(cfg):
                     "No checkpoint found at '{}'".format(cfg["training"]["resume"])
                 )
 
-    model = model.cuda()
+    model.cuda()
 
     if local_rank == 0:
         logger.info("Model initialized on GPUs.")
@@ -152,7 +160,12 @@ def train(cfg):
             optimizer.zero_grad()
 
             start_ts = time.time()
-            loss = model(images.cuda(), labels.cuda())
+            if kd_enable:
+                with torch.no_grad():
+                    teacher_outputs = teacher_model(images.cuda())
+            else:
+                teacher_outputs = None
+            loss = model(images.cuda(), labels.cuda(), teacher_outputs)
             loss = torch.mean(loss)
             loss.backward()
             time_meter.update(time.time() - start_ts)
@@ -240,7 +253,7 @@ if __name__ == "__main__":
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    args = Namespace(config="Uper_swin_v2_b.yml", local_rank=0)
+    args = Namespace(config="Uper_resnet18.yml", local_rank=0)
 
     with open(args.config) as fp:
         cfg = yaml.safe_load(fp)

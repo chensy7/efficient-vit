@@ -1,6 +1,6 @@
 model:
     arch: upernet
-    backbone: swin_v2_b
+    backbone: swin_v2_t
 data:
     dataset: lpcvc 
     train_split: train  
@@ -14,6 +14,7 @@ training:
     batch_size: 16
     val_interval: 500
     print_interval: 25
+    teacher:
     loss:
         name: OhemCELoss2D
         thresh: 0.7

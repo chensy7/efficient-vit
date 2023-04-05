@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from loss import OhemCELoss2D, CrossEntropyLoss
 import copy
 import torchvision.models as models
-
+import transformers
 
 model_urls = {
     "resnet18": "https://download.pytorch.org/models/resnet18-5c106cde.pth",
@@ -300,6 +300,8 @@ class FANet(nn.Module):
 
         if self.backbone_type == "swin_v2_b":
             feat4, feat8, feat16, feat32 = swin_v2_b_forward(self.backbone, x)
+        elif self.backbone_type == "mobilevit":
+            feat4, feat8, feat16, feat32 = mobilevit_forward(self.backbone, x)
         else:
             feat4, feat8, feat16, feat32 = self.backbone(x)
 
