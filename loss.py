@@ -32,7 +32,13 @@ class OhemCELoss2D(nn.CrossEntropyLoss):
         return self.OhemCELoss(pred, target)
 
     def OhemCELoss(self, logits, labels):
-        N, C, H, W = logits.size()
+        N, C, H, W = logits.shape
+        logits = nn.functional.interpolate(
+            logits,
+            size=labels.shape[-2:],
+            mode="bilinear",
+            align_corners=False,
+        )
         loss = super(OhemCELoss2D, self).forward(logits, labels).view(-1)
         loss, _ = torch.sort(loss, descending=True)
         if loss[self.n_min] > self.thresh:
