@@ -47,19 +47,20 @@ def evaluate(cfg):
     ckpt = torch.load(cfg["validating"]["resume"])
     model.load_state_dict(ckpt["model_state"])
 
-    model = model.cuda()
+    model = model.cuda()#.to(torch.float16)
     running_metrics_val = runningScore(v_loader.n_classes)
 
     model.eval()
     total_time = 0
     with torch.no_grad():
     	for i_val, (images_val, labels_val) in tqdm(enumerate(valloader)):
-    		mytime = time()
-    		outputs = model(images_val.cuda())
-    		total_time += time() - mytime
-    		pred = outputs.data.max(1)[1].cpu().numpy()
-    		gt = labels_val.data.cpu().numpy()
-    		running_metrics_val.update(gt, pred)
+            images_val = images_val.cuda()#.to(torch.float16)
+            mytime = time()
+            outputs = model(images_val)
+            total_time += time() - mytime
+            pred = outputs.data.max(1)[1].cpu().numpy()
+            gt = labels_val.data.cpu().numpy()
+            running_metrics_val.update(gt, pred)
 
     score, class_iou = running_metrics_val.get_scores()
     for k, v in score.items():

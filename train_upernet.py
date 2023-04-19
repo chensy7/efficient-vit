@@ -19,6 +19,7 @@ from augmentations import get_composed_augmentations
 from optimizers import get_optimizer
 
 from torch.utils.tensorboard import SummaryWriter
+from prune import *
 
 def init_seed(manual_seed, en_cudnn=False):
     torch.cuda.benchmark = en_cudnn
@@ -31,7 +32,7 @@ def init_seed(manual_seed, en_cudnn=False):
 
 def train(cfg):
 
-    run_id = random.randint(1, 100000)
+    # run_id = random.randint(1, 100000)
     init_seed(11733, en_cudnn=True)
 
     global local_rank
@@ -39,7 +40,7 @@ def train(cfg):
 
     if local_rank == 0:
         logdir = os.path.join("runs", os.path.basename(args.config)[:-4])
-        work_dir = os.path.join(logdir, str(run_id))
+        work_dir = os.path.join(logdir, 'current')
 
         if not os.path.exists("runs"):
             os.makedirs("runs")
@@ -115,7 +116,9 @@ def train(cfg):
         teacher_model.cuda()
 
     # Setup optimizer
-    optimizer = get_optimizer(cfg["training"], model)
+    # optimizer = get_optimizer(cfg["training"], model)
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, cfg["training"]["step_size"])
 
     # Initialize training param
     start_iter = 0
@@ -126,7 +129,7 @@ def train(cfg):
         if os.path.isfile(cfg["training"]["resume"]):
             ckpt = torch.load(cfg["training"]["resume"])
             model.load_state_dict(ckpt["model_state"])
-            optimizer.load_state_dict(ckpt["optimizer"])
+            # optimizer.load_state_dict(ckpt["optimizer"])
             best_iou = ckpt["best_iou"]
             start_iter = ckpt["iter"]
             if local_rank == 0:
@@ -135,13 +138,22 @@ def train(cfg):
                         cfg["training"]["resume"]
                     )
                 )
+                print("Resuming training from checkpoint '{}'".format(
+                        cfg["training"]["resume"]
+                    ))
         else:
             if local_rank == 0:
                 logger.info(
                     "No checkpoint found at '{}'".format(cfg["training"]["resume"])
                 )
+                print("No checkpoint found at '{}'".format(cfg["training"]["resume"]))
 
     model.cuda()
+
+    if cfg["training"]["prune"]:
+        best_iou = -100
+        start_iter = 0
+        prune_model(model.backbone, cfg["model"]["backbone"], cfg["training"]["prune_percentage"])
 
     if local_rank == 0:
         logger.info("Model initialized on GPUs.")
@@ -171,6 +183,7 @@ def train(cfg):
             time_meter.update(time.time() - start_ts)
 
             optimizer.step()
+            scheduler.step()
 
             if local_rank == 0 and (i + 1) % cfg["training"]["print_interval"] == 0:
                 fmt_str = "Iter [{:d}/{:d}]  Loss: {:.4f}  Time/Image: {:.4f}"
@@ -253,7 +266,7 @@ if __name__ == "__main__":
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    args = Namespace(config="Uper_resnet18.yml", local_rank=0)
+    args = Namespace(config="Uper_mobilevit.yml", local_rank=0)
 
     with open(args.config) as fp:
         cfg = yaml.safe_load(fp)
