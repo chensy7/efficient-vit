@@ -64,9 +64,86 @@ def prune_model(model, arch, percentage):
 			model.encoder.layer[4].fusion.convolution,
 			model.conv_1x1_exp.convolution,
 		)
+	elif arch == 'swin_v2_t':
+		parameters_to_prune = [
+			model.features[0][0],
+			# model.features[1][0].attn.qkv,
+			# model.features[1][0].attn.proj,
+			model.features[1][0].attn.cpb_mlp[0],
+			model.features[1][0].attn.cpb_mlp[2],
+			model.features[1][0].mlp[0],
+			model.features[1][0].mlp[3],
+			# model.features[1][1].attn.qkv,
+			# model.features[1][1].attn.proj,
+			model.features[1][1].attn.cpb_mlp[0],
+			model.features[1][1].attn.cpb_mlp[2],
+			model.features[1][1].mlp[0],
+			model.features[1][1].mlp[3],
+			# model.features[3][0].attn.qkv,
+			# model.features[3][0].attn.proj,
+			model.features[3][0].attn.cpb_mlp[0],
+			model.features[3][0].attn.cpb_mlp[2],
+			model.features[3][0].mlp[0],
+			model.features[3][0].mlp[3],
+			# model.features[3][1].attn.qkv,
+			# model.features[3][1].attn.proj,
+			model.features[3][1].attn.cpb_mlp[0],
+			model.features[3][1].attn.cpb_mlp[2],
+			model.features[3][1].mlp[0],
+			model.features[3][1].mlp[3],
+			model.features[5][0].mlp[0],
+			model.features[5][0].mlp[3],
+			model.features[5][1].mlp[0],
+			model.features[5][1].mlp[3],
+			model.features[5][2].mlp[0],
+			model.features[5][2].mlp[3],
+			model.features[5][3].mlp[0],
+			model.features[5][3].mlp[3],
+			model.features[5][4].mlp[0],
+			model.features[5][4].mlp[3],
+			model.features[5][5].mlp[0],
+			model.features[5][5].mlp[3],
+			# model.features[7][0].attn.qkv,
+			# model.features[7][0].attn.proj,
+			model.features[7][0].attn.cpb_mlp[0],
+			model.features[7][0].attn.cpb_mlp[2],
+			model.features[7][0].mlp[0],
+			model.features[7][0].mlp[3],
+			# model.features[7][1].attn.qkv,
+			# model.features[7][1].attn.proj,
+			model.features[7][1].attn.cpb_mlp[0],
+			model.features[7][1].attn.cpb_mlp[2],
+			model.features[7][1].mlp[0],
+			model.features[7][1].mlp[3],
+		]
+		for i in range(6):
+			parameters_to_prune += [
+			# model.features[5][i].attn.qkv,
+			# model.features[5][i].attn.proj,
+			model.features[5][i].attn.cpb_mlp[0],
+			model.features[5][i].attn.cpb_mlp[2]]
+	elif arch == 'swin_v2_b':
+		parameters_to_prune = [
+			model.features[0][0],
+			model.features[1][0].mlp[0],
+			model.features[1][0].mlp[3],
+			model.features[1][1].mlp[0],
+			model.features[1][1].mlp[3],
+			model.features[3][0].mlp[0],
+			model.features[3][0].mlp[3],
+			model.features[3][1].mlp[0],
+			model.features[3][1].mlp[3],
+			model.features[7][0].mlp[0],
+			model.features[7][0].mlp[3],
+			model.features[7][1].mlp[0],
+			model.features[7][1].mlp[3],
+		]
+		for i in range(16):
+			parameters_to_prune += [model.features[5][i].mlp[0],
+				model.features[5][i].mlp[3]]
 	for idx, i in enumerate(parameters_to_prune):
 		prune.ln_structured(
-			i, 'weight', amount=percentage, dim=1, n=2)
+			i, 'weight', amount=percentage, dim=0, n=2)
 	print('{0} model pruned...'.format(arch)) 
 
 	sparse = 0
