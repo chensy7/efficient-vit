@@ -15,7 +15,7 @@ training:
     val_interval: 500
     print_interval: 25
     prune: True
-    prune_percentage: 0.6
+    prune_percentage: 0.9
     step_size: 20000
     teacher: 
         name:

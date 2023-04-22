@@ -10,7 +10,7 @@ data:
     path: data/
 validating:
     densecrf: False
-    resume: ./runs/Uper_swin_v2_b/96217/upernet_lpcvc_best_model.pkl
+    resume: ./runs/Uper_swin_v2_b/model/upernet_lpcvc_best_model.pkl
     n_workers: 1
     batch_size: 1
     outpath: 

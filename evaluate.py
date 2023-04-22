@@ -21,6 +21,8 @@ from optimizers import get_optimizer
 from torch.utils.tensorboard import SummaryWriter
 from time import time
 
+import prune
+
 def evaluate(cfg):
 
     # Setup Augmentations
@@ -43,6 +45,7 @@ def evaluate(cfg):
 
     # Setup Model
     model = get_model(cfg["model"], v_loader.n_classes)
+    prune.prune_model(model.backbone, cfg["model"]["backbone"], 0, True)
 
     ckpt = torch.load(cfg["validating"]["resume"])
     model.load_state_dict(ckpt["model_state"])
@@ -80,7 +83,7 @@ if __name__ == "__main__":
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    args = Namespace(config="Uper_resnet18_eval.yml", local_rank=0)
+    args = Namespace(config="Uper_swin_v2_b_eval.yml", local_rank=0)
 
     with open(args.config) as fp:
         cfg = yaml.safe_load(fp)
