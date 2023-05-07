@@ -39,41 +39,41 @@ def prune_model(model, arch, percentage, identity=False):
 		)
 	elif arch == 'mobilevit':
 		parameters_to_prune = (
-			(model.conv_stem.convolution, 'weight'),
-			(model.encoder.layer[0].layer[0].expand_1x1.convolution, 'weight'),
-			(model.encoder.layer[0].layer[0].conv_3x3.convolution, 'weight'),
-			(model.encoder.layer[0].layer[0].reduce_1x1.convolution, 'weight'),
-			(model.encoder.layer[1].layer[0].expand_1x1.convolution, 'weight'),
-			(model.encoder.layer[1].layer[0].conv_3x3.convolution, 'weight'),
-			(model.encoder.layer[1].layer[0].reduce_1x1.convolution, 'weight'),
-			(model.encoder.layer[1].layer[1].expand_1x1.convolution, 'weight'),
-			(model.encoder.layer[1].layer[1].conv_3x3.convolution, 'weight'),
-			(model.encoder.layer[1].layer[1].reduce_1x1.convolution, 'weight'),
-			(model.encoder.layer[1].layer[2].expand_1x1.convolution, 'weight'),
-			(model.encoder.layer[1].layer[2].conv_3x3.convolution, 'weight'),
-			(model.encoder.layer[1].layer[2].reduce_1x1.convolution, 'weight'),
-			(model.encoder.layer[2].downsampling_layer.expand_1x1.convolution, 'weight'),
-			(model.encoder.layer[2].downsampling_layer.conv_3x3.convolution, 'weight'),
-			(model.encoder.layer[2].downsampling_layer.reduce_1x1.convolution, 'weight'),
-			(model.encoder.layer[2].conv_kxk.convolution, 'weight'),
-			(model.encoder.layer[2].conv_1x1.convolution, 'weight'),
-			(model.encoder.layer[2].conv_projection.convolution, 'weight'),
-			(model.encoder.layer[2].fusion.convolution, 'weight'),
-			(model.encoder.layer[3].downsampling_layer.expand_1x1.convolution, 'weight'),
-			(model.encoder.layer[3].downsampling_layer.conv_3x3.convolution, 'weight'),
-			(model.encoder.layer[3].downsampling_layer.reduce_1x1.convolution, 'weight'),
-			(model.encoder.layer[3].conv_kxk.convolution, 'weight'),
-			(model.encoder.layer[3].conv_1x1.convolution, 'weight'),
-			(model.encoder.layer[3].conv_projection.convolution, 'weight'),
-			(model.encoder.layer[3].fusion.convolution, 'weight'),
-			(model.encoder.layer[4].downsampling_layer.expand_1x1.convolution, 'weight'),
-			(model.encoder.layer[4].downsampling_layer.conv_3x3.convolution, 'weight'),
-			(model.encoder.layer[4].downsampling_layer.reduce_1x1.convolution, 'weight'),
-			(model.encoder.layer[4].conv_kxk.convolution, 'weight'),
-			(model.encoder.layer[4].conv_1x1.convolution, 'weight'),
-			(model.encoder.layer[4].conv_projection.convolution, 'weight'),
-			(model.encoder.layer[4].fusion.convolution, 'weight'),
-			(model.conv_1x1_exp.convolution, 'weight'),
+			model.conv_stem.convolution,
+			model.encoder.layer[0].layer[0].expand_1x1.convolution,
+			model.encoder.layer[0].layer[0].conv_3x3.convolution,
+			model.encoder.layer[0].layer[0].reduce_1x1.convolution,
+			model.encoder.layer[1].layer[0].expand_1x1.convolution,
+			model.encoder.layer[1].layer[0].conv_3x3.convolution,
+			model.encoder.layer[1].layer[0].reduce_1x1.convolution,
+			model.encoder.layer[1].layer[1].expand_1x1.convolution,
+			model.encoder.layer[1].layer[1].conv_3x3.convolution,
+			model.encoder.layer[1].layer[1].reduce_1x1.convolution,
+			model.encoder.layer[1].layer[2].expand_1x1.convolution,
+			model.encoder.layer[1].layer[2].conv_3x3.convolution,
+			model.encoder.layer[1].layer[2].reduce_1x1.convolution,
+			model.encoder.layer[2].downsampling_layer.expand_1x1.convolution,
+			model.encoder.layer[2].downsampling_layer.conv_3x3.convolution,
+			model.encoder.layer[2].downsampling_layer.reduce_1x1.convolution,
+			model.encoder.layer[2].conv_kxk.convolution,
+			model.encoder.layer[2].conv_1x1.convolution,
+			model.encoder.layer[2].conv_projection.convolution,
+			model.encoder.layer[2].fusion.convolution,
+			model.encoder.layer[3].downsampling_layer.expand_1x1.convolution,
+			model.encoder.layer[3].downsampling_layer.conv_3x3.convolution,
+			model.encoder.layer[3].downsampling_layer.reduce_1x1.convolution,
+			model.encoder.layer[3].conv_kxk.convolution,
+			model.encoder.layer[3].conv_1x1.convolution,
+			model.encoder.layer[3].conv_projection.convolution,
+			model.encoder.layer[3].fusion.convolution,
+			model.encoder.layer[4].downsampling_layer.expand_1x1.convolution,
+			model.encoder.layer[4].downsampling_layer.conv_3x3.convolution,
+			model.encoder.layer[4].downsampling_layer.reduce_1x1.convolution,
+			model.encoder.layer[4].conv_kxk.convolution,
+			model.encoder.layer[4].conv_1x1.convolution,
+			model.encoder.layer[4].conv_projection.convolution,
+			model.encoder.layer[4].fusion.convolution,
+			model.conv_1x1_exp.convolution,
 		)
 	elif arch == 'swin_v2_t':
 		parameters_to_prune = [
@@ -158,20 +158,20 @@ def prune_model(model, arch, percentage, identity=False):
 			prune.identity(i, 'weight')
 		return
 
-	# for idx, i in enumerate(parameters_to_prune):
-	# 	prune.ln_structured(
-	# 		i, 'weight', amount=percentage, dim=1, n=2)
-	prune_threshold = 0.19
-	prune.global_unstructured(
-		parameters_to_prune,
-		pruning_method=ThresholdPruningMethod,
-		threshold=float(prune_threshold),
-    )
+	for idx, i in enumerate(parameters_to_prune):
+		prune.ln_structured(
+			i, 'weight', amount=percentage, dim=0, n=2)
+	# prune_threshold = 0.6
+	# prune.global_unstructured(
+	# 	parameters_to_prune,
+	# 	pruning_method=ThresholdPruningMethod,
+	# 	threshold=float(prune_threshold),
+    # )
 	print('{0} model pruned...'.format(arch)) 
 
 	sparse = 0
 	count = 0
-	for (i, _) in parameters_to_prune:
+	for i in parameters_to_prune:
 		sparse += float(torch.sum(i.weight == 0))
 		bias_count = 0
 		if i.bias is not None: bias_count = i.bias.nelement()

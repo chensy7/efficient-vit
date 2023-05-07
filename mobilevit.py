@@ -173,7 +173,7 @@ class MobileViTSelfAttention(nn.Module):
         #         f"heads {config.num_attention_heads}."
         #     )
 
-        self.num_attention_heads = 4 #config.num_attention_heads
+        self.num_attention_heads = 2 #config.num_attention_heads
         self.attention_head_size = int(hidden_size / self.num_attention_heads)
         self.all_head_size = self.num_attention_heads * self.attention_head_size
 

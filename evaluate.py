@@ -45,19 +45,19 @@ def evaluate(cfg):
 
     # Setup Model
     model = get_model(cfg["model"], v_loader.n_classes)
-    prune.prune_model(model.backbone, cfg["model"]["backbone"], 0, True)
+    # prune.prune_model(model.backbone, cfg["model"]["backbone"], 0, True)
 
     ckpt = torch.load(cfg["validating"]["resume"])
     model.load_state_dict(ckpt["model_state"])
 
-    model = model.cuda()#.to(torch.float16)
+    model = model.cuda().to(torch.float16)
     running_metrics_val = runningScore(v_loader.n_classes)
 
     model.eval()
     total_time = 0
     with torch.no_grad():
     	for i_val, (images_val, labels_val) in tqdm(enumerate(valloader)):
-            images_val = images_val.cuda()#.to(torch.float16)
+            images_val = images_val.cuda().to(torch.float16)
             mytime = time()
             outputs = model(images_val)
             total_time += time() - mytime
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         def __init__(self, **kwargs):
             self.__dict__.update(kwargs)
 
-    args = Namespace(config="Uper_swin_v2_b_eval.yml", local_rank=0)
+    args = Namespace(config="Uper_resnet18_eval.yml", local_rank=0)
 
     with open(args.config) as fp:
         cfg = yaml.safe_load(fp)

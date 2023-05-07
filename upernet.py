@@ -403,7 +403,7 @@ class UperNet(nn.Module):
         elif backbone == "resnet50":
             self.backbone = Resnet18(norm_layer=BatchNorm2d)
         elif backbone == "mobilevit":
-            self.backbone = transformers.MobileViTModel.from_pretrained("apple/mobilevit-small")
+            self.backbone = transformers.MobileViTModel.from_pretrained("apple/mobilevit-small", num_attention_heads=2)
         else:
             raise RuntimeError("unknown backbone: {}".format(backbone))
 
